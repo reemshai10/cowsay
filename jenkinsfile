@@ -35,8 +35,8 @@ pipeline{
                     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                     unzip awscliv2.zip
                     sudo ./aws/install
-                    aws configure set aws_access_key_id 'AKIAZMC2XWDGNMY5VAXK'
-                    aws configure set aws_secret_access_key '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'                
+                    aws configure set aws_access_key_id 
+                    aws configure set aws_secret_access_key               
                     aws ecr-public get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin public.ecr.aws/c7o8u9c1
                     sudo docker tag cowsay:latest public.ecr.aws/c7o8u9c1/publish_cowsay_ecr_reem:latest
                     sudo docker push public.ecr.aws/c7o8u9c1/publish_cowsay_ecr_reem:latest
