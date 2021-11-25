@@ -1,0 +1,67 @@
+pipeline{
+   
+    agent any
+    options{
+        timestamps()
+        timeout(time:7,unit:'MINUTES')
+        buildDiscarder(logRotator(
+            numToKeepStr: '4',
+            daysToKeepStr: '7',
+            artifactNumToKeepStr: '30'))
+        
+    }
+    stages{
+        stage('build') {
+            steps{
+               sh '''#!/bin/bash 
+                    chmod +x ./init.sh
+                    chmod +x ./entry-point.sh
+                    sudo ./init.sh
+                    sleep 10
+                '''   
+            }   
+        }
+        stage('test') {
+            steps{
+                sh '''#!/bin/bash 
+                    curl http://54.93.185.143:4001      
+                '''    
+            }   
+        }
+        stage('Publish') {
+            steps{
+                sh '''#!/bin/bash
+                    sudo apt-get install unzip
+                    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                    unzip awscliv2.zip
+                    sudo ./aws/install
+                    aws configure set aws_access_key_id 
+                    aws configure set aws_secret_access_key               
+                    aws ecr-public get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin public.ecr.aws/c7o8u9c1
+                    sudo docker tag cowsay:latest public.ecr.aws/c7o8u9c1/publish_cowsay_ecr_reem:latest
+                    sudo docker push public.ecr.aws/c7o8u9c1/publish_cowsay_ecr_reem:latest
+                '''    
+            }   
+        } 
+        stage('Deploy') {
+            steps {
+                sh '''#!/bin/bash 
+                   sudo chmod 400 reem_lava.pem
+                   sudo ssh -i "reem_lava.pem" ubuntu@ec2-3-65-40-92.eu-central-1.compute.amazonaws.com "sudo docker ps -aq | xargs sudo docker rm -f && sudo docker run -d -p 81:3001 public.ecr.aws/c7o8u9c1/publish_cowsay_ecr_reem:latest"
+                    
+                '''
+            }   
+        } 
+    }
+
+    post {
+        failure {
+                mail bcc: '', body: 'Failure to deploy', cc: '', from: '', replyTo: '', subject: 'jenkins job', to: 'reemtest12@gmail.com'
+            }
+        success {
+            mail bcc: '', body: 'Success to deploy', cc: '', from: '', replyTo: '', subject: 'jenkins job', to: 'reemtest12@gmail.com'
+        }   
+        
+        }
+    
+}

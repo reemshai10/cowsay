@@ -1,0 +1,30 @@
+version: '3.3'
+services:
+  jenkins:
+    image: public.ecr.aws/c7o8u9c1/reem_jenkins:latest
+    volumes:
+      - jenkinsHome:/var/jenkinsHome
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"        
+  gitlab:
+    image: 'gitlab/gitlab-ee:latest'
+  # restart: always
+    hostname: 'gitlab.example.com'
+  # environment:
+  #   GITLAB_OMNIBUS_CONFIG: |
+  #     external_url 'https://gitlab.example.com'
+  #     # Add any other gitlab.rb configuration here, each on its own line
+    ports:
+      - '80:80'
+    # - '443:443'
+    # - '20:20'
+    volumes:
+      - config:/etc/gitlab
+      - logs:/var/log/gitlab
+      - data:/var/opt/gitlab
+volumes:
+  jenkinsHome:
+  data:
+  config:
+  logs:
